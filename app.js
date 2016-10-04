@@ -1,6 +1,6 @@
 var http = require('http');
 var fs = require('fs');
-var express = require("express");
+var express = require('express');
 var dotenv = require('dotenv');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
@@ -35,15 +35,13 @@ var samlStrategy = new saml.Strategy({
   validateInResponseTo: false,
   disableRequestedAuthnContext: true
 }, function(profile, done) {
-  profile.email ='610100000377';
-  findByEmail(profile.email, function(err, user){
-    if(err){
-      return done(err);
-    }
-    return done(null, user);
+  return done(null,
+  {
+    issuer:'issuer',
+    clientID:'username:1610100000377:entitytype:10'
   });
 });
-
+console.log("this works");
 passport.use(samlStrategy);
 
 var app = express();
@@ -75,7 +73,7 @@ app.get('/login',
   }
 );
 
-app.post('/login/callback',
+app.post('/freeaccess/sso.aspx',
    passport.authenticate('saml', { failureRedirect: '/login/fail' }),
   function(req, res) {
     res.redirect('/');
@@ -101,6 +99,6 @@ app.use(function(err, req, res, next) {
   next(err);
 });
 
-var server = app.listen(4006, function () {
+var server = app.listen(5858, function () {
   console.log('Listening on port %d', server.address().port)
 });
