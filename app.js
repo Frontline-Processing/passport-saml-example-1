@@ -10,7 +10,7 @@ var saml = require('passport-saml');
 
 dotenv.load();
 
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function(user, done) {s
   done(null, user);
 });
 
@@ -27,15 +27,21 @@ var samlStrategy = new saml.Strategy({
   issuer: process.env.ISSUER,
   identifierFormat: null,
   // Service Provider private key
-  decryptionPvk: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
+  decryptionPvk: fs.readFileSync(__dirname + '/cert/test-apply-pci.pem', 'utf8'),
   // Service Provider Certificate
-  privateCert: fs.readFileSync(__dirname + '/cert/key.pem', 'utf8'),
+  privateCert: fs.readFileSync(__dirname + '/cert/test-apply-pci.pem', 'utf8'),
   // Identity Provider's public key
-  cert: fs.readFileSync(__dirname + '/cert/idp_cert.pem', 'utf8'),
+  cert: fs.readFileSync(__dirname + '/cert/paymentportal.pem', 'utf8'),
   validateInResponseTo: false,
   disableRequestedAuthnContext: true
 }, function(profile, done) {
-  return done(null, profile); 
+  profile.email ='610100000377';
+  findByEmail(profile.email, function(err, user){
+    if(err){
+      return done(err);
+    }
+    return done(null, user);
+  });
 });
 
 passport.use(samlStrategy);
@@ -56,7 +62,7 @@ function ensureAuthenticated(req, res, next) {
 }
 
 app.get('/',
-  ensureAuthenticated, 
+  ensureAuthenticated,
   function(req, res) {
     res.send('Authenticated');
   }
@@ -76,16 +82,16 @@ app.post('/login/callback',
   }
 );
 
-app.get('/login/fail', 
+app.get('/login/fail',
   function(req, res) {
     res.status(401).send('Login failed');
   }
 );
 
-app.get('/Shibboleth.sso/Metadata', 
+app.get('/Shibboleth.sso/Metadata',
   function(req, res) {
     res.type('application/xml');
-    res.status(200).send(samlStrategy.generateServiceProviderMetadata(fs.readFileSync(__dirname + '/cert/cert.pem', 'utf8')));
+    res.status(200).send(samlStrategy.generateServiceProviderMetadata(fs.readFileSync(__dirname + '/cert/pyamentportal.pem', 'utf8')));
   }
 );
 
@@ -98,4 +104,3 @@ app.use(function(err, req, res, next) {
 var server = app.listen(4006, function () {
   console.log('Listening on port %d', server.address().port)
 });
-
